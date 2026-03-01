@@ -3266,6 +3266,18 @@ export const collectionsSlice = createSlice({
           info.isRecursive = isRecursive;
           info.cancelTokenUid = cancelTokenUid;
           info.status = 'started';
+          info.totalIterations = action.payload.totalIterations ?? 1;
+          info.currentIteration = 0;
+        }
+
+        if (type === 'iteration-started') {
+          const info = collection.runnerResult.info;
+          info.currentIteration = action.payload.iterationIndex;
+          info.status = 'running';
+        }
+
+        if (type === 'iteration-ended') {
+          // No special action needed; items already have iterationIndex
         }
 
         if (type === 'testrun-ended') {
@@ -3282,7 +3294,8 @@ export const collectionsSlice = createSlice({
         if (type === 'request-queued') {
           collection.runnerResult.items.push({
             uid: request.uid,
-            status: 'queued'
+            status: 'queued',
+            iterationIndex: action.payload.iterationIndex ?? 0
           });
         }
 
@@ -3356,6 +3369,14 @@ export const collectionsSlice = createSlice({
         collection.runnerTags = { include: [], exclude: [] };
         collection.runnerTagsEnabled = false;
         collection.runnerConfiguration = null;
+        collection.runnerBatchData = null;
+      }
+    },
+    updateRunnerBatchData: (state, action) => {
+      const { collectionUid, batchData } = action.payload;
+      const collection = findCollectionByUid(state.collections, collectionUid);
+      if (collection) {
+        collection.runnerBatchData = batchData;
       }
     },
     updateRunnerTagsDetails: (state, action) => {
@@ -3918,6 +3939,7 @@ export const {
   runRequestEvent,
   runFolderEvent,
   resetCollectionRunner,
+  updateRunnerBatchData,
   updateRunnerTagsDetails,
   updateRunnerConfiguration,
   updateRequestDocs,

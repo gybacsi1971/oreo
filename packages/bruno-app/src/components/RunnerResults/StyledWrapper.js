@@ -78,6 +78,23 @@ const Wrapper = styled.div`
     border-color: ${(props) => props.theme.background.surface1};
   }
 
+  .batch-data-section {
+    border-color: ${(props) => props.theme.background.surface1};
+  }
+
+  .iteration-header {
+    padding: 0.5rem 0;
+    margin-top: 0.75rem;
+    border-top: 1px solid ${(props) => props.theme.border.border0};
+    font-weight: 500;
+    color: ${(props) => props.theme.colors.text.text};
+
+    &:first-child {
+      margin-top: 0;
+      border-top: none;
+    }
+  }
+
   .filter-bar {
     display: flex;
     align-items: stretch;

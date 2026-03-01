@@ -2,8 +2,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import path from 'utils/common/path';
 import { useDispatch } from 'react-redux';
 import { get, cloneDeep } from 'lodash';
-import { runCollectionFolder, cancelRunnerExecution, mountCollection, updateRunnerConfiguration } from 'providers/ReduxStore/slices/collections/actions';
+import { runCollectionFolder, cancelRunnerExecution, mountCollection, updateRunnerConfiguration, updateBatchData } from 'providers/ReduxStore/slices/collections/actions';
 import { resetCollectionRunner, updateRunnerTagsDetails } from 'providers/ReduxStore/slices/collections';
+import BatchDataModal from './BatchDataModal';
 import { findItemInCollection, getTotalRequestCountInCollection, areItemsLoading, getRequestItemsForCollectionRun } from 'utils/collections';
 import { IconRefresh, IconCircleCheck, IconCircleX, IconCircleOff, IconCheck, IconX, IconRun, IconExternalLink } from '@tabler/icons';
 import ResponsePane from './ResponsePane';
@@ -82,11 +83,13 @@ export default function RunnerResults({ collection }) {
   const [activeFilter, setActiveFilter] = useState('all');
   const [selectedRequestItems, setSelectedRequestItems] = useState([]);
   const [configureMode, setConfigureMode] = useState(false);
+  const [showBatchModal, setShowBatchModal] = useState(false);
   // ref for the runner output body
   const runnerBodyRef = useRef();
 
   const collectionCopy = cloneDeep(collection);
   const runnerInfo = get(collection, 'runnerResult.info', {});
+  const batchData = get(collection, 'runnerBatchData', null);
 
   // tags for the collection run
   const tags = get(collection, 'runnerTags', { include: [], exclude: [] });
@@ -292,6 +295,49 @@ export default function RunnerResults({ collection }) {
             {/* Tags for the collection run */}
             <RunnerTags collectionUid={collection.uid} className="mb-6" />
 
+            {/* Batch Data for collection run */}
+            <div className="batch-data-section flex flex-col border-b pb-6 mb-6">
+              <div className="flex items-center gap-2">
+                <label className="block font-medium">Batch Data</label>
+                {batchData ? (
+                  <span className="text-xs text-muted">
+                    ({batchData.rows.length} iteration{batchData.rows.length > 1 ? 's' : ''})
+                  </span>
+                ) : null}
+              </div>
+              <div className="flex gap-2 mt-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setShowBatchModal(true)}
+                  data-testid="batch-data-button"
+                >
+                  {batchData ? 'Edit Batch Data' : 'Load CSV/JSON'}
+                </Button>
+                {batchData ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => dispatch(updateBatchData(collection.uid, null))}
+                    data-testid="batch-data-clear"
+                  >
+                    Clear
+                  </Button>
+                ) : null}
+              </div>
+            </div>
+
+            {showBatchModal ? (
+              <BatchDataModal
+                collection={collection}
+                onConfirm={(data) => {
+                  dispatch(updateBatchData(collection.uid, data));
+                  setShowBatchModal(false);
+                }}
+                onCancel={() => setShowBatchModal(false)}
+              />
+            ) : null}
+
             {/* Configure requests option */}
             <div className="run-config-option flex flex-col border-b pb-6 mb-6">
               <div className="flex gap-2">
@@ -313,9 +359,11 @@ export default function RunnerResults({ collection }) {
                 disabled={shouldDisableCollectionRun || (configureMode && selectedRequestItems.length === 0) || isCollectionLoading}
                 onClick={runCollection}
               >
-                {configureMode && selectedRequestItems.length > 0
-                  ? `Run ${selectedRequestItems.length} Selected Request${selectedRequestItems.length > 1 ? 's' : ''}`
-                  : 'Run Collection'}
+                {batchData && batchData.rows.length > 1
+                  ? `Run Collection (${batchData.rows.length} iterations)`
+                  : configureMode && selectedRequestItems.length > 0
+                    ? `Run ${selectedRequestItems.length} Selected Request${selectedRequestItems.length > 1 ? 's' : ''}`
+                    : 'Run Collection'}
               </Button>
 
               <Button type="button" variant="ghost" onClick={resetRunner}>
@@ -422,9 +470,12 @@ export default function RunnerResults({ collection }) {
 
           {/* Items list */}
           <div className="overflow-y-auto flex-1 " ref={runnerBodyRef}>
-            {filteredItems.map((item) => {
-              return (
-                <div key={item.uid}>
+            {(() => {
+              const totalIterations = get(collection, 'runnerResult.info.totalIterations', 1);
+              const isMultiIteration = totalIterations > 1;
+
+              const renderItem = (item, key) => (
+                <div key={key}>
                   <div className="item-path mt-2">
                     <div className="flex items-center">
                       <span>
@@ -547,7 +598,35 @@ export default function RunnerResults({ collection }) {
                   </div>
                 </div>
               );
-            })}
+
+              if (isMultiIteration) {
+                // Group items by iterationIndex
+                const itemsByIteration = {};
+                filteredItems.forEach((item) => {
+                  const idx = item.iterationIndex ?? 0;
+                  if (!itemsByIteration[idx]) {
+                    itemsByIteration[idx] = [];
+                  }
+                  itemsByIteration[idx].push(item);
+                });
+
+                return Object.entries(itemsByIteration).map(([iterIdx, iterItems]) => (
+                  <div key={`iteration-${iterIdx}`}>
+                    <div className="iteration-header" data-testid={`iteration-header-${iterIdx}`}>
+                      <span>Iteration {Number(iterIdx) + 1}</span>
+                      {batchData?.rows?.[Number(iterIdx)] ? (
+                        <span className="text-xs text-muted ml-2">
+                          ({Object.entries(batchData.rows[Number(iterIdx)]).map(([k, v]) => `${k}=${v}`).join(', ')})
+                        </span>
+                      ) : null}
+                    </div>
+                    {iterItems.map((item, itemIdx) => renderItem(item, `${iterIdx}-${item.uid}-${itemIdx}`))}
+                  </div>
+                ));
+              }
+
+              return filteredItems.map((item, idx) => renderItem(item, `${item.uid}-${idx}`));
+            })()}
           </div>
         </div>
 

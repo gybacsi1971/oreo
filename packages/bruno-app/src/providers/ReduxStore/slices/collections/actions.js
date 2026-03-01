@@ -47,6 +47,7 @@ import {
   collectionClearOauth2CredentialsByUrlAndCredentialsId,
   initRunRequestEvent,
   updateRunnerConfiguration as _updateRunnerConfiguration,
+  updateRunnerBatchData as _updateRunnerBatchData,
   updateActiveConnections,
   saveRequest as _saveRequest,
   saveEnvironment as _saveEnvironment,
@@ -687,6 +688,8 @@ export const runCollectionFolder
         })
       );
 
+      const batchData = collection.runnerBatchData;
+
       const { ipcRenderer } = window;
       ipcRenderer
         .invoke(
@@ -698,7 +701,8 @@ export const runCollectionFolder
           recursive,
           delay,
           tags,
-          selectedRequestUids
+          selectedRequestUids,
+          batchData
         )
         .then(resolve)
         .catch((err) => {
@@ -2981,6 +2985,15 @@ export const updateRunnerConfiguration
       })
     );
   };
+
+export const updateBatchData = (collectionUid, batchData) => (dispatch) => {
+  dispatch(
+    _updateRunnerBatchData({
+      collectionUid,
+      batchData
+    })
+  );
+};
 
 export const updateActiveConnectionsInStore = (activeConnectionIds) => (dispatch, getState) => {
   dispatch(updateActiveConnections(activeConnectionIds));
