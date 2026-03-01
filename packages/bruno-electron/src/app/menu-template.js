@@ -95,7 +95,7 @@ const template = [
     role: 'help',
     submenu: [
       {
-        label: 'About Bruno',
+        label: 'About Oreo',
         click: () => {
           const aboutWindow = new BrowserWindow({
             width: 350,

@@ -2,7 +2,7 @@ require('dotenv').config({ path: process.env.DOTENV_PATH });
 
 const config = {
   appId: 'com.usebruno.app',
-  productName: 'Bruno',
+  productName: 'Oreo',
   electronVersion: '37.6.1',
   directories: {
     buildResources: 'resources',
@@ -37,7 +37,7 @@ const config = {
     notarize: false,
     protocols: [
       {
-        name: 'Bruno',
+        name: 'Oreo',
         schemes: [
           'bruno'
         ]
@@ -63,7 +63,7 @@ const config = {
     ],
     protocols: [
       {
-        name: 'Bruno',
+        name: 'Oreo',
         schemes: ['bruno']
       }
     ],
