@@ -1,8 +1,8 @@
-import React, { useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import get from 'lodash/get';
 import { useDispatch } from 'react-redux';
 import { useTheme } from 'providers/Theme';
-import { IconUpload, IconX, IconFile } from '@tabler/icons';
+import { IconUpload, IconX, IconFile, IconMaximize } from '@tabler/icons';
 import {
   moveMultipartFormParam,
   setMultipartFormParams
@@ -10,6 +10,7 @@ import {
 import { browseFiles } from 'providers/ReduxStore/slices/collections/actions';
 import MultiLineEditor from 'components/MultiLineEditor';
 import SingleLineEditor from 'components/SingleLineEditor';
+import ValueEditorModal from 'components/ValueEditorModal';
 import { sendRequest, saveRequest } from 'providers/ReduxStore/slices/collections/actions';
 import EditableTable from 'components/EditableTable';
 import StyledWrapper from './StyledWrapper';
@@ -19,6 +20,7 @@ import { isWindowsOS } from 'utils/common/platform';
 const MultipartFormParams = ({ item, collection }) => {
   const dispatch = useDispatch();
   const { storedTheme } = useTheme();
+  const [expandedRow, setExpandedRow] = useState(null);
   const params = item.draft ? get(item, 'draft.request.body.multipartForm') : get(item, 'request.body.multipartForm');
 
   const onSave = () => dispatch(saveRequest(item.uid, collection.uid));
@@ -146,23 +148,30 @@ const MultipartFormParams = ({ item, collection }) => {
         }
 
         return (
-          <div className="flex items-center value-cell">
-            <div className="flex-1">
-              <MultiLineEditor
-                onSave={onSave}
-                theme={storedTheme}
-                value={value || ''}
-                onChange={(newValue) => handleValueChange(row, newValue, onChange)}
-                onRun={handleRun}
-                allowNewlines={true}
-                collection={collection}
-                item={item}
-                placeholder={!value ? 'Value' : ''}
-              />
-            </div>
+          <div className="relative value-cell w-full">
+            <MultiLineEditor
+              onSave={onSave}
+              theme={storedTheme}
+              value={value || ''}
+              onChange={(newValue) => handleValueChange(row, newValue, onChange)}
+              onRun={handleRun}
+              allowNewlines={true}
+              collection={collection}
+              item={item}
+              placeholder={!value ? 'Value' : ''}
+            />
+            {!isLastEmptyRow && (
+              <button
+                className="expand-btn"
+                onClick={() => setExpandedRow(row)}
+                title="Expand editor"
+              >
+                <IconMaximize size={14} />
+              </button>
+            )}
             {!hasTextValue && !isLastEmptyRow && (
               <button
-                className="upload-btn ml-1"
+                className="upload-btn"
                 onClick={() => handleBrowseFiles(row, onChange)}
                 title="Select file"
               >
@@ -209,6 +218,16 @@ const MultipartFormParams = ({ item, collection }) => {
         reorderable={true}
         onReorder={handleParamDrag}
       />
+      {expandedRow && (
+        <ValueEditorModal
+          value={(params || []).find((p) => p.uid === expandedRow.uid)?.value || ''}
+          title={`Edit Value: ${expandedRow.name || 'Untitled'}`}
+          collection={collection}
+          item={item}
+          onSave={(newValue) => handleValueChange(expandedRow, newValue, () => {})}
+          onClose={() => setExpandedRow(null)}
+        />
+      )}
     </StyledWrapper>
   );
 };

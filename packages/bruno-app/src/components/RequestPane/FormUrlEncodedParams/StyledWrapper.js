@@ -44,6 +44,34 @@ const Wrapper = styled.div`
     position: relative;
     top: 1px;
   }
+
+  .value-cell {
+    .expand-btn {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3px;
+      color: ${(props) => props.theme.colors.text.muted};
+      background: ${(props) => props.theme.bg};
+      border: 1px solid ${(props) => props.theme.border.border0};
+      cursor: pointer;
+      border-radius: 4px;
+      opacity: 0;
+      transition: opacity 0.15s ease, color 0.15s ease;
+
+      &:hover {
+        color: ${(props) => props.theme.colors.text.link};
+      }
+    }
+
+    &:hover .expand-btn {
+      opacity: 1;
+    }
+  }
 `;
 
 export default Wrapper;

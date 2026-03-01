@@ -13,6 +13,7 @@ import SkippedRequest from 'components/ResponsePane/SkippedRequest';
 import RunnerTimeline from 'components/ResponsePane/RunnerTimeline';
 import ScriptError from 'components/ResponsePane/ScriptError';
 import ScriptErrorIcon from 'components/ResponsePane/ScriptErrorIcon';
+import RequestTab from './RequestTab';
 
 const ResponsePane = ({ rightPaneWidth, item, collection }) => {
   const [selectedTab, setSelectedTab] = useState('response');
@@ -49,6 +50,15 @@ const ResponsePane = ({ rightPaneWidth, item, collection }) => {
             headers={responseReceived.headers}
             error={error}
             key={item.filename}
+          />
+        );
+      }
+      case 'request': {
+        return (
+          <RequestTab
+            requestSent={requestSent}
+            item={item}
+            collection={collection}
           />
         );
       }
@@ -102,6 +112,11 @@ const ResponsePane = ({ rightPaneWidth, item, collection }) => {
         <div className={getTabClassname('response')} role="tab" onClick={() => selectTab('response')}>
           Response
         </div>
+        {requestSent && (
+          <div className={getTabClassname('request')} role="tab" onClick={() => selectTab('request')}>
+            Request
+          </div>
+        )}
         <div className={getTabClassname('headers')} role="tab" onClick={() => selectTab('headers')}>
           Headers
           {headers?.length > 0 && <sup className="ml-1 font-medium">{headers.length}</sup>}
