@@ -139,13 +139,13 @@ if (useSingleInstance && !gotTheLock) {
   // This is the primary instance (or single instance is disabled)
 
   // Try to remove any existing registrations
-  app.removeAsDefaultProtocolClient('bruno');
-  // Register as default handler for `bruno://` protocol URLs
-  app.setAsDefaultProtocolClient('bruno');
+  app.removeAsDefaultProtocolClient('oreo');
+  // Register as default handler for `oreo://` protocol URLs
+  app.setAsDefaultProtocolClient('oreo');
 
   if (isLinux) {
     try {
-      execSync('xdg-mime default bruno.desktop x-scheme-handler/bruno');
+      execSync('xdg-mime default oreo.desktop x-scheme-handler/oreo');
     } catch (err) {}
   }
 
@@ -478,6 +478,23 @@ app.on('before-quit', () => {
 
   // Stop system monitoring
   systemMonitor.stop();
+
+  // Close all file watchers to prevent fsevents crash on exit
+  try {
+    collectionWatcher.closeAll();
+  } catch (err) {
+    console.error('Failed to close collection watchers on quit', err);
+  }
+  try {
+    workspaceWatcher.closeAll();
+  } catch (err) {
+    console.error('Failed to close workspace watchers on quit', err);
+  }
+  try {
+    apiSpecWatcher.closeAll();
+  } catch (err) {
+    console.error('Failed to close API spec watchers on quit', err);
+  }
 
   try {
     terminalManager.killAll();

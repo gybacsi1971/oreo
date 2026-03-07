@@ -221,6 +221,22 @@ class WorkspaceWatcher {
     }
   }
 
+  closeAll() {
+    for (const workspacePath of Object.keys(this.watchers)) {
+      if (this.watchers[workspacePath]) {
+        this.watchers[workspacePath].close();
+      }
+    }
+    this.watchers = {};
+    for (const workspacePath of Object.keys(this.environmentWatchers)) {
+      if (this.environmentWatchers[workspacePath]) {
+        this.environmentWatchers[workspacePath].close();
+      }
+    }
+    this.environmentWatchers = {};
+    dotEnvWatcher.closeAll();
+  }
+
   hasWatcher(workspacePath) {
     return Boolean(this.watchers[workspacePath]);
   }

@@ -6,12 +6,21 @@ const { parsedFileCacheStore } = require('../store/parsed-file-cache-idb');
 const { getCachedSystemProxy, refreshSystemProxy } = require('../store/system-proxy');
 const { resolveDefaultLocation } = require('../utils/default-location');
 
+// Onboarding gate: a promise that resolves when onboarding completes.
+// This avoids a race condition where main:onboarding-complete fires
+// before renderer:ready sets up its listener (deadlock on 2nd launch).
+let onboardingResolve;
+const onboardingComplete = new Promise((resolve) => {
+  onboardingResolve = resolve;
+});
+ipcMain.once('main:onboarding-complete', () => onboardingResolve());
+
 const registerPreferencesIpc = (mainWindow) => {
   ipcMain.handle('renderer:ready', async (event) => {
     // Wait for onboarding to finish before reading preferences.
     // Onboarding may set hasSeenWelcomeModal for new vs existing users,
     // and we need the renderer to receive the correct values.
-    await new Promise((resolve) => ipcMain.once('main:onboarding-complete', resolve));
+    await onboardingComplete;
 
     // load preferences
     const preferences = getPreferences();

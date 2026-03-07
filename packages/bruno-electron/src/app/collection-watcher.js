@@ -852,6 +852,17 @@ class CollectionWatcher {
     }
   }
 
+  closeAll() {
+    for (const watchPath of Object.keys(this.watchers)) {
+      if (this.watchers[watchPath]) {
+        this.watchers[watchPath].close();
+      }
+    }
+    this.watchers = {};
+    this.loadingStates = {};
+    this.tempDirectoryMap = {};
+  }
+
   addItemPathInWatcher(itemPath) {
     const watcher = this.getWatcherByItemPath(itemPath);
     if (watcher && !watcher?.has?.(itemPath)) {

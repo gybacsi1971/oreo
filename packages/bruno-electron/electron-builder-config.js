@@ -1,7 +1,7 @@
 require('dotenv').config({ path: process.env.DOTENV_PATH });
 
 const config = {
-  appId: 'com.usebruno.app',
+  appId: 'com.oreo.app',
   productName: 'Oreo',
   electronVersion: '37.6.1',
   directories: {
@@ -15,7 +15,6 @@ const config = {
     }
   ],
   files: ['**/*'],
-  afterSign: 'notarize.js',
   mac: {
     artifactName: '${name}_${version}_${arch}_${os}.${ext}',
     category: 'public.app-category.developer-tools',
@@ -30,8 +29,7 @@ const config = {
       }
     ],
     icon: 'resources/icons/mac/icon.icns',
-    hardenedRuntime: true,
-    identity: 'Anoop MD (W7LPPWA48L)',
+    identity: null,
     entitlements: 'resources/entitlements.mac.plist',
     entitlementsInherit: 'resources/entitlements.mac.plist',
     notarize: false,
@@ -39,7 +37,7 @@ const config = {
       {
         name: 'Oreo',
         schemes: [
-          'bruno'
+          'oreo'
         ]
       }
     ]
@@ -64,12 +62,12 @@ const config = {
     protocols: [
       {
         name: 'Oreo',
-        schemes: ['bruno']
+        schemes: ['oreo']
       }
     ],
     category: 'Development',
     desktop: {
-      MimeType: 'x-scheme-handler/bruno;'
+      MimeType: 'x-scheme-handler/oreo;'
     }
   },
   deb: {
@@ -97,7 +95,7 @@ const config = {
       }
     ],
     sign: null,
-    publisherName: 'Bruno Software Inc'
+    publisherName: 'Oreo'
   },
   nsis: {
     oneClick: false,
